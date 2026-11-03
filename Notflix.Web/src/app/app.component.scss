@@ -50,3 +50,8 @@
 .dropdown:hover .dropdown-content {
   display: block;
 }
+.navbar { color: #ffffcc; min-height: 80px; }
+.navbar-button { color: #ffffcc; text-decoration: none; }
+.navbar-right { gap: 1rem; }
+.session-button { background: #ffffcc; border: 0; border-radius: 4px; padding: .5rem .8rem; }
+.global-error { margin: 0; padding: 1rem; background: #fff0f0; color: #842029; }

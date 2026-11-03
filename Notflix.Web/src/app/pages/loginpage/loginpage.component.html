@@ -1,5 +1,15 @@
-<div class="container">
+<main class="container">
   <h1 class="title">Notflix</h1>
-  <img class="graphic" src="assets/images/popcorn.png" alt="Graphic">
-  <button class="login-button" (click)="login()">Enter Site</button>
-</div>
+  <img class="graphic" src="assets/images/popcorn.png" alt="Popcorn" width="150" height="150">
+  <h2>Log in</h2>
+  <form [formGroup]="form" (ngSubmit)="login()" class="login-form">
+    <label for="username">Username</label>
+    <input id="username" formControlName="userName" autocomplete="username" maxlength="80" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" formControlName="password" autocomplete="current-password" maxlength="256" required>
+    @if (form.invalid && form.touched) { <p class="form-error">Enter your username and password.</p> }
+    @if (error$ | async; as error) { <p class="form-error" role="alert">{{ error }}</p> }
+    <button type="submit" class="login-button" [disabled]="busy$ | async">{{ (busy$ | async) ? 'Logging in…' : 'Log in' }}</button>
+    @if (connectionError) { <button type="button" [disabled]="busy$ | async" (click)="retrySession()">Retry session</button> }
+  </form>
+</main>

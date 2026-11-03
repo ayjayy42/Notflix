@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 ﻿using Microsoft.AspNetCore.Mvc;
 using Notflix.API.Enumerables;
 using Notflix.API.Models;
@@ -7,6 +8,7 @@ namespace Notflix.API.Controllers
 {
     [Route("api/movies")]
     [ApiController]
+    [Authorize]
     public class MoviesController : ControllerBase
     {
         private readonly IMovieRepository _repository;

@@ -1,139 +1,35 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-﻿using Microsoft.AspNetCore.Mvc;
-using Notflix.API.Enumerables;
+using Microsoft.AspNetCore.Mvc;
 using Notflix.API.Models;
 using Notflix.API.Repositories.Interfaces;
+namespace Notflix.API.Controllers;
 
-namespace Notflix.API.Controllers
+[ApiController, Authorize, Route("api/movies")]
+public sealed class MoviesController(IMovieRepository repository) : ControllerBase
 {
-    [Route("api/movies")]
-    [ApiController]
-    [Authorize]
-    public class MoviesController : ControllerBase
+    private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    [HttpGet] public async Task<IActionResult> List(CancellationToken ct) => Ok(await repository.GetAllAsync(UserId, ct));
+    [HttpGet("{id:int}")] public async Task<IActionResult> Get(int id, CancellationToken ct)
     {
-        private readonly IMovieRepository _repository;
-        private readonly ILogger<MoviesController> _logger;
-
-        public MoviesController(IMovieRepository repo, ILogger<MoviesController> logger)
-        {
-            _repository = repo;
-            _logger = logger;
-        }
-
-        [HttpGet]
-        public IActionResult GetAllMovies()
-        {
-            try
-            {
-                var movies = _repository.GetAll();
-
-                if (movies is null)
-                    return NotFound();
-
-                return Ok(movies);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPost("exists")]
-        public IActionResult GetMovieExists([FromQuery] string title)
-        {
-            var exists = _repository.EntityExists(title.Trim());
-            return Ok(exists);
-        }
-
-        [HttpPost("getmoviebytitle")]
-        public IActionResult GetMovieByTitle([FromQuery] string title)
-        {
-            try
-            {
-                var entity = _repository.GetByTitle(title);
-
-                if (entity is null)
-                    return NotFound();
-
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPost("getmoviesbycategory")]
-        public IActionResult GetMoviesByCategory([FromQuery] int category)
-        {
-            try
-            {
-                var entity = _repository.GetByCategory(category);
-
-                if (entity is null)
-                    return NotFound();
-
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPost("updatemovie")]
-        public IActionResult UpdateMovie([FromBody] Movie movie)
-        {
-            try
-            {
-                var movieExists = _repository.EntityExists(movie.Title);
-
-                if (!movieExists)
-                    return BadRequest("Movie doesn't exist?");
-
-                _repository.Update(movie);
-
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPut("addNewMovie")]
-        public IActionResult AddMovie([FromBody] Movie movie)
-        {
-            try
-            {
-                var movieExists = _repository.EntityExists(movie.Title);
-
-                if (movieExists)
-                    return BadRequest("Movie already exists");
-
-                _repository.Add(movie);
-
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpDelete("delete")]
-        public IActionResult Delete(int id)
-        {
-            try
-            {
-                _repository.Delete(id);
-
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        var movie = await repository.GetAsync(id, UserId, ct);
+        return movie is null ? NotFound() : Ok(movie);
     }
+    [HttpPost] public async Task<IActionResult> Add(MovieRequest request, CancellationToken ct)
+    {
+        var movie = await repository.AddAsync(request, UserId, ct);
+        return CreatedAtAction(nameof(Get), new { id = movie.Id }, movie);
+    }
+    [HttpPut("{id:int}")] public async Task<IActionResult> Edit(int id, MovieRequest request, CancellationToken ct)
+    {
+        var movie = await repository.UpdateAsync(id, request, UserId, ct);
+        return movie is null ? NotFound() : Ok(movie);
+    }
+    [HttpPut("{id:int}/rating")] public async Task<IActionResult> Rate(int id, RatingRequest request, CancellationToken ct)
+    {
+        var movie = await repository.RateAsync(id, UserId, request.Rating, ct);
+        return movie is null ? NotFound() : Ok(movie);
+    }
+    [HttpDelete("{id:int}")] public async Task<IActionResult> Delete(int id, CancellationToken ct) =>
+        await repository.DeleteAsync(id, ct) ? NoContent() : NotFound();
 }

@@ -1,18 +1,12 @@
-﻿using Notflix.API.Enumerables;
-
-namespace Notflix.API.Models
+using Notflix.API.Enumerables;
+namespace Notflix.API.Models;
+public sealed class Movie
 {
-    public class Movie
-    {
-        public int Id { get; set; }
-        public string? Title { get; set; }
-        public Category? Category { get; set; }
-        public int? Rating { get; set; }
-
-        public Movie(string title, string category, int rating)
-        {
-            Title = title;
-            Rating = rating;
-        }
-    }
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public Category? Category { get; set; }
+    public int? LegacyRating { get; set; }
+    public double? AverageRating { get; set; }
+    public int RatingCount { get; set; }
+    public int? MyRating { get; set; }
 }

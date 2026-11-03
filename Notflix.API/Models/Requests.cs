@@ -1,5 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 namespace Notflix.API.Models;
+public sealed class MovieRequest
+{
+    [Required, StringLength(100)] public string Title { get; set; } = string.Empty;
+    [Range(1, 5)] public int Category { get; set; }
+}
+public sealed class RatingRequest { [Range(1, 5)] public int Rating { get; set; } }
 public sealed class LoginRequest
 {
     [Required, StringLength(80)] public string UserName { get; set; } = string.Empty;

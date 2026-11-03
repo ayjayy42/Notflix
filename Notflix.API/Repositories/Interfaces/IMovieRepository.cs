@@ -1,24 +1,11 @@
-﻿using System.Collections;
 using Notflix.API.Models;
-
-namespace Notflix.API.Repositories.Interfaces
+namespace Notflix.API.Repositories.Interfaces;
+public interface IMovieRepository
 {
-    public interface IMovieRepository
-    {
-        bool EntityExists(string title);
-
-        Movie GetById(int id);
-
-        Movie GetByTitle(string title);
-
-        IEnumerable<Movie> GetByCategory(int category);
-
-        IEnumerable GetAll();
-
-        void Add(Movie entity);
-
-        void Update(Movie entity);
-
-        void Delete(int id);
-    }
+    Task<IReadOnlyList<Movie>> GetAllAsync(int userId, CancellationToken cancellationToken);
+    Task<Movie?> GetAsync(int id, int userId, CancellationToken cancellationToken);
+    Task<Movie> AddAsync(MovieRequest request, int userId, CancellationToken cancellationToken);
+    Task<Movie?> UpdateAsync(int id, MovieRequest request, int userId, CancellationToken cancellationToken);
+    Task<Movie?> RateAsync(int id, int userId, int rating, CancellationToken cancellationToken);
+    Task<bool> DeleteAsync(int id, CancellationToken cancellationToken);
 }

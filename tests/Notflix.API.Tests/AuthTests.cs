@@ -72,6 +72,28 @@ public sealed class AuthTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task LoginRefreshesIdentityBoundToken_AndLogoutEndsTheSession()
+    {
+        var anonymousToken = await NotflixTestApplication.RefreshCsrfAsync(_app.Client);
+        using var login = await _app.Client.PostAsJsonAsync("/api/auth/login", new { userName = NotflixTestApplication.UserName, password = NotflixTestApplication.Password });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var staleToken = await _app.Client.PostAsJsonAsync("/api/movies", new { title = "Rejected stale token", category = 1 });
+        Assert.Equal(HttpStatusCode.BadRequest, staleToken.StatusCode);
+
+        var authenticatedToken = await NotflixTestApplication.RefreshCsrfAsync(_app.Client);
+        Assert.NotEqual(anonymousToken, authenticatedToken);
+        using var added = await _app.Client.PostAsJsonAsync("/api/movies", new { title = "Accepted fresh token", category = 1 });
+        Assert.Equal(HttpStatusCode.Created, added.StatusCode);
+        using var logout = await _app.Client.PostAsync("/api/auth/logout", null);
+        Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
+        await NotflixTestApplication.RefreshCsrfAsync(_app.Client);
+        using var afterLogout = await _app.Client.GetAsync("/api/movies");
+        Assert.Equal(HttpStatusCode.Unauthorized, afterLogout.StatusCode);
+        using var rejectedMutation = await _app.Client.PostAsJsonAsync("/api/movies", new { title = "Rejected after logout", category = 1 });
+        Assert.Equal(HttpStatusCode.Unauthorized, rejectedMutation.StatusCode);
+    }
+
+    [Fact]
     public async Task SeededPassword_IsStoredAsAHashAndRepeatSeedDoesNotResetIt()
     {
         await using var db = await _app.OpenAsync();

@@ -10,8 +10,6 @@ using Notflix.API.Repositories.Interfaces;
 var builder = WebApplication.CreateBuilder(args.Where(a => a is not "--setup" and not "--seed").ToArray());
 builder.Services.AddSingleton<SqlConnectionFactory>();
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
-builder.Services.AddScoped<System.Data.IDbConnection>(provider => new Microsoft.Data.SqlClient.SqlConnection(provider.GetRequiredService<SqlConnectionFactory>().ConnectionString));
-
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPasswordHasher<NotflixUser>, PasswordHasher<NotflixUser>>();
 builder.Services.AddScoped<DatabaseSetup>();

@@ -1,21 +1,15 @@
 <h2 mat-dialog-title>{{ isNew ? 'Add Movie' : 'Edit Movie' }}</h2>
-<mat-dialog-content>
-  <form [formGroup]="movieForm">
-    <mat-form-field>
-      <input matInput formControlName="title" placeholder="Title">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-label>Category</mat-label>
-      <mat-select formControlName="category">
-        <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-    <mat-form-field>
-      <input matInput type="number" formControlName="rating" placeholder="Rating">
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-<mat-dialog-actions>
-  <button mat-button (click)="onCancel()">Cancel</button>
-  <button mat-button color="primary" (click)="save()">{{ isNew ? 'Save' : 'Update' }}</button>
-</mat-dialog-actions>
+<form [formGroup]="movieForm" (ngSubmit)="save()">
+  <mat-dialog-content>
+    <mat-form-field><mat-label>Title</mat-label><input matInput formControlName="title" maxlength="100" required>
+      <mat-error>Enter a title of 1–100 characters.</mat-error></mat-form-field>
+    <mat-form-field><mat-label>Category</mat-label><mat-select formControlName="category" required>
+      @for (category of categories; track category.id) { <mat-option [value]="category.id">{{ category.name }}</mat-option> }
+    </mat-select><mat-error>Choose a category.</mat-error></mat-form-field>
+    @if (error$ | async; as error) { <p class="dialog-error" role="alert">{{ error }}</p> }
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="saving$ | async">Cancel</button>
+    <button mat-flat-button type="submit" [disabled]="(saving$ | async) || movieForm.invalid">{{ (saving$ | async) ? 'Saving…' : isNew ? 'Save' : 'Update' }}</button>
+  </mat-dialog-actions>
+</form>

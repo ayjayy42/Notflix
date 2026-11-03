@@ -1,30 +1,37 @@
-<div class="table-container">
+<main class="table-container">
   <div class="table-wrapper">
-    <h2 class="table-heading">Movie List</h2>
-    <div class>
-      <input type="text" placeholder="Search..." [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)" />
-      <button class="btn btn-primary add-button" (click)="openMovieDialog()">Add Movie</button>
+    <h1 class="table-heading">Movie List</h1>
+    <div class="list-toolbar">
+      <label for="movie-search">Search movies</label>
+      <input #searchInput id="movie-search" type="search" placeholder="Search..." (input)="search(searchInput.value)">
+      <button type="button" class="btn btn-primary add-button" (click)="openMovieDialog()">Add Movie</button>
     </div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Category</th>
-          <th>Rating</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let movie of movies">
-          <td> {{ movie.Title }} </td>
-          <td> {{ movie.Category }} </td>
-          <td> {{ movie.Rating }} </td>
-          <td>
-            <button class="btn btn-primary" (click)="openMovieDialog(movie)">Edit</button>
-            <button class="btn btn-danger" (click)="onDeleteClicked(movie)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    @if (notice$ | async; as notice) { <p class="notice" role="status">{{ notice }}</p> }
+    @if (actionError$ | async; as error) { <p class="error" role="alert">{{ error }}</p> }
+    @if (state$ | async; as state) {
+      @if (state.loading) { <p role="status">Loading movies...</p> }
+      @else if (state.error) { <div class="error" role="alert">{{ state.error }} <button type="button" class="btn btn-primary" (click)="reload()">Retry</button></div> }
+      @else if (!state.movies.length) { <p role="status">No movies found. Try another search or add a movie.</p> }
+      @else {
+        <div class="table-scroll" tabindex="0" aria-label="Movies table">
+          <table class="table"><caption class="visually-hidden">Movies and community ratings</caption>
+            <thead><tr><th scope="col">Title</th><th scope="col">Category</th><th scope="col">Community rating</th><th scope="col">Your rating</th><th scope="col">Actions</th></tr></thead>
+            <tbody>@for (movie of state.movies; track movie.id) {
+              <tr><td>{{ movie.title }}</td><td>{{ categoryName(movie.category) }}</td>
+                <td>@if (movie.averageRating !== null) { {{ movie.averageRating | number:'1.1-1' }} / 5 ({{ movie.ratingCount }}) } @else { Not rated }</td>
+                <td><label class="visually-hidden" [for]="'rating-'+movie.id">Rate {{ movie.title }}</label>
+                  <select [id]="'rating-'+movie.id" [ngModel]="movie.myRating" [disabled]="(pendingId$ | async) !== null"
+                    (ngModelChange)="rate(movie, $event)">
+                    <option [ngValue]="null" disabled>Rate</option>@for (star of stars; track star) { <option [ngValue]="star">{{ star }} / 5</option> }
+                  </select>
+                </td>
+                <td class="actions"><button type="button" class="btn btn-primary" (click)="openMovieDialog(movie)" [attr.aria-label]="'Edit '+movie.title">Edit</button>
+                  <button type="button" class="btn btn-danger" [disabled]="(pendingId$ | async) !== null" (click)="delete(movie)" [attr.aria-label]="'Delete '+movie.title">Delete</button></td>
+              </tr>
+            }</tbody>
+          </table>
+        </div>
+      }
+    }
   </div>
-</div>
+</main>

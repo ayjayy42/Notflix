@@ -1,1 +1,6 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+html, body { margin: 0; min-height: 100%; background: #333333; }
+body { font-family: Arial, sans-serif; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 3px solid #ad8200; outline-offset: 3px; }
+button:disabled { opacity: .6; cursor: wait; }
